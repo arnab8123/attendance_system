@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>College Attendance System - Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-dark: #0d47a1;
+      --secondary: #f8f9fa;
+      --text: #202124;
+      --text-light: #5f6368;
+      --background: #ffffff;
+      --card-bg: #f8f9fa;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+      --header-height: 80px;
+      --header-bg: #1a73e8;
+      --header-text: #ffffff;
+      --grid-color: #00000020;
+      --grid-bg: #ffffff;
+    }
+    .dark-mode {
+      --primary: #4285f4;
+      --primary-dark: #8ab4f8;
+      --secondary: #202124;
+      --text: #e8eaed;
+      --text-light: #9aa0a6;
+      --background: #000000;
+      --card-bg: #1e1e1e;
+      --shadow: rgba(0, 0, 0, 0.3);
+      --header-bg: #1a73e8;
+      --header-text: #ffffff;
+      --grid-color: #fff5f520;
+      --grid-bg: #000000;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; transition: var(--transition); }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding-top: var(--header-height);
+      position: relative;
+    }
+
+    /* === Excel-style spotlight grid background === */
+    .grid-background {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 80px 25px;
+      background-color: var(--grid-bg);
+      pointer-events: none;
+      z-index: 0;
+      -webkit-mask-image: radial-gradient(circle 400px at var(--x, 50%) var(--y, 50%), rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%);
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-size: cover;
+      mask-image: radial-gradient(circle 400px at var(--x, 50%) var(--y, 50%), rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%);
+      mask-repeat: no-repeat;
+      mask-size: cover;
+      opacity: 0;
+      transition: opacity 0.4s ease, mask-position 0.2s ease, -webkit-mask-position 0.2s ease;
+    }
+    .grid-background.active { opacity: 1; }
+
+    /* Header */
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 30px;
+      position: fixed; top: 20px; left: 50%;
+      transform: translateX(-50%);
+      width: 90%; max-width: 1200px;
+      height: var(--header-height);
+      background-color: var(--header-bg);
+      z-index: 1000;
+      box-shadow: 0 5px 20px var(--shadow);
+      border-radius: 50px;
+      opacity: 0; animation: slideDown 0.8s ease forwards;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo i { font-size: 2rem; color: var(--header-text); }
+    .logo h1 { font-size: 1.5rem; color: var(--header-text); font-weight: 700; }
+    .nav-links { display: flex; gap: 25px; }
+    .nav-links a { text-decoration: none; color: var(--header-text); font-weight: 500; position: relative; padding: 8px 5px; cursor: pointer; }
+    .nav-links a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 3px; background: var(--header-text); transition: var(--transition); border-radius: 2px; }
+    .nav-links a:hover::after { width: 100%; }
+    .hamburger { display: none; background: none; border: none; font-size: 1.6rem; color: var(--header-text); cursor: pointer; margin-left: 10px; }
+
+    @media (max-width: 768px) {
+      .nav-links { position: absolute; top: var(--header-height); right: 20px; background: var(--header-bg); flex-direction: column; gap: 15px; padding: 20px; border-radius: 15px; box-shadow: 0 8px 20px var(--shadow); display: none; }
+      .nav-links.active { display: flex; animation: slideDownMenu 0.3s ease; }
+      .hamburger { display: block; }
+    }
+    @keyframes slideDownMenu { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideDown { from { transform: translate(-50%, -100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+    /* Login Container */
+    .login-container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 35px 25px;
+      border-radius: 15px;
+      width: 300px;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(26, 115, 232, 0.5);
+      position: relative;
+      z-index: 2;
+    }
+    body.dark-mode .login-container { background: rgba(0, 0, 0, 0.95); color: #fff; }
+    .login-container h2 { margin-bottom: 20px; color: var(--primary); }
+    .input-group { margin-bottom: 10px; }
+    .input-group input { width: 85%; padding: 9px; border: 1px solid #ccc; border-radius: 8px; outline: none; text-align: center; }
+    .input-group input:focus { border: 1px solid var(--primary); box-shadow: 0 0 6px rgba(26,115,232,0.6); }
+    body.dark-mode .input-group input { background: #222; border: 1px solid #444; color: #fff; }
+    .invalid { border: 1px solid red !important; box-shadow: 0 0 6px rgba(255,0,0,0.6) !important; }
+
+    .options { display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin: 6px auto 12px; width: 85%; }
+    .options a { color: var(--primary); text-decoration: none; transition: color 0.3s ease; }
+    .options a:hover { color: red; }
+
+    .login-btn { width: 85%; padding: 10px; border: none; border-radius: 8px; background: var(--primary); color: #fff; font-size: 15px; cursor: pointer; transition: background 0.3s ease, transform 0.2s ease; }
+    .login-btn:hover { transform: scale(1.02); background: var(--primary-dark); }
+    .login-btn:disabled { background: gray; cursor: not-allowed; opacity: 0.7; }
+
+    .signup-text { margin-top: 12px; font-size: 14px; }
+    .signup-text a { cursor: pointer; transition: color 0.3s ease; color: var(--primary); text-decoration: none; }
+    .signup-text a:hover { color: red; }
+
+    .show-password { display: none; font-size: 13px; margin-bottom: 10px; text-align: left; width: 85%; margin-left: auto; margin-right: auto; }
+
+    /* Terms Button */
+    .terms-btn { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); color: #fff; padding: 12px 20px; border-radius: 30px; box-shadow: 0 5px 15px var(--shadow); z-index: 1001; font-size: 14px; font-weight: 500; border: none; display: flex; justify-content: center; align-items: center; display: none; }
+    .terms-btn label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+    .terms-link { color: #fff; text-decoration: none; font-weight: 500; cursor: pointer; transition: color 0.3s ease; }
+    .terms-link:hover { color: red; }
+  </style>
+</head>
+<body>
+  <div class="grid-background" id="gridBg"></div>
+
+  <header>
+    <div class="logo">
+      <i class="fas fa-graduation-cap"></i>
+      <h1>College Attendance System</h1>
+    </div>
+    <nav class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="#">Query</a>
+    </nav>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <i class="fas fa-bars"></i>
+    </button>
+  </header>
+
+  <div class="login-container" id="loginContainer">
+    <h2 id="formTitle">Sign In</h2>
+    <div class="input-group">
+      <input type="text" placeholder="Enter your Name" id="nameInput">
+    </div>
+    <div class="input-group">
+      <input type="email" placeholder="Enter your Email" id="emailInput">
+    </div>
+    <div class="input-group">
+      <input type="password" placeholder="Enter your Password" id="password">
+    </div>
+    <div class="input-group" id="reenterPassword" style="display: none;">
+      <input type="password" placeholder="Re-enter your Password" id="confirmPassword">
+    </div>
+    <div class="show-password" id="showPasswordBox">
+      <label><input type="checkbox" id="showPassword"> Show Password</label>
+    </div>
+    <div class="options" id="optionsRow">
+      <label><input type="checkbox"> Remember me</label>
+      <a href="#">Forgot password?</a>
+    </div>
+    <button class="login-btn" id="actionBtn">Sign In</button>
+    <p class="signup-text" id="toggleText">New to ? <a id="toggleLink">Sign Up</a></p>
+  </div>
+
+  <div class="terms-btn" id="termsBtn">
+    <label>
+      <input type="checkbox" id="termsCheckbox">
+      I agree to <a href="terms.html" target="_blank" class="terms-link">terms</a>
+    </label>
+  </div>
+
+  <script>
+    // Elements
+    const gridBg = document.getElementById("gridBg");
+    const formTitle = document.getElementById("formTitle");
+    const reenterPassword = document.getElementById("reenterPassword");
+    const actionBtn = document.getElementById("actionBtn");
+    const toggleText = document.getElementById("toggleText");
+    const optionsRow = document.getElementById("optionsRow");
+    const showPasswordBox = document.getElementById("showPasswordBox");
+    const showPassword = document.getElementById("showPassword");
+    const password = document.getElementById("password");
+    const confirmPassword = document.getElementById("confirmPassword");
+    const termsBtn = document.getElementById("termsBtn");
+    const termsCheckbox = document.getElementById("termsCheckbox");
+    const nameInput = document.getElementById("nameInput");
+    const emailInput = document.getElementById("emailInput");
+
+    const body = document.body;
+    let isSignUp = false;
+
+    // Background spotlight effect
+    document.addEventListener("mousemove", e => {
+      gridBg.classList.add("active");
+      gridBg.style.setProperty("--x", e.clientX + "px");
+      gridBg.style.setProperty("--y", e.clientY + "px");
+    });
+    document.addEventListener("mouseleave", () => gridBg.classList.remove("active"));
+
+    // Theme from localStorage
+    const savedTheme = localStorage.getItem("theme") || "light-mode";
+    body.classList.add(savedTheme);
+
+    // Hamburger
+    const hamburger = document.getElementById("hamburger");
+    const navLinks = document.getElementById("navLinks");
+    hamburger.addEventListener("click", () => {
+      navLinks.classList.toggle("active");
+      hamburger.innerHTML = navLinks.classList.contains("active")
+        ? '<i class="fas fa-times"></i>'
+        : '<i class="fas fa-bars"></i>';
+    });
+
+    // Toggle Sign In / Sign Up
+    toggleText.addEventListener("click", e => {
+      if (e.target && e.target.id === "toggleLink") toggleLinkClick();
+    });
+
+    function toggleLinkClick(){
+      isSignUp = !isSignUp;
+      if (isSignUp) {
+        formTitle.textContent = "Sign Up";
+        reenterPassword.style.display = "block";
+        showPasswordBox.style.display = "block";
+        actionBtn.textContent = "Sign Up";
+        actionBtn.disabled = true;
+        optionsRow.style.display = "none";
+        toggleText.innerHTML = `Already have an account? <a id="toggleLink">Sign In</a>`;
+        termsBtn.style.display = "flex";
+      } else {
+        formTitle.textContent = "Sign In";
+        reenterPassword.style.display = "none";
+        showPasswordBox.style.display = "none";
+        actionBtn.textContent = "Sign In";
+        actionBtn.disabled = false;
+        optionsRow.style.display = "flex";
+        toggleText.innerHTML = `New to ? <a id="toggleLink">Sign Up</a>`;
+        termsBtn.style.display = "none";
+      }
+    }
+
+    // Show/hide password
+    showPassword.addEventListener("change", () => {
+      const type = showPassword.checked ? "text" : "password";
+      password.type = type;
+      confirmPassword.type = type;
+    });
+
+    // Enable/disable Sign Up button based on terms
+    termsCheckbox.addEventListener("change", () => {
+      actionBtn.disabled = !termsCheckbox.checked;
+    });
+
+    // Sign Up / Sign In validation & redirect
+    actionBtn.addEventListener("click", e => {
+      if (isSignUp) {
+        if (password.value !== confirmPassword.value) {
+          e.preventDefault();
+          password.classList.add("invalid");
+          confirmPassword.classList.add("invalid");
+          alert("Passwords do not match!");
+        } else {
+          password.classList.remove("invalid");
+          confirmPassword.classList.remove("invalid");
+
+          // Save data temporarily in localStorage
+          const signupData = {
+            name: nameInput.value,
+            email: emailInput.value,
+            password: password.value
+          };
+          localStorage.setItem("signupData", JSON.stringify(signupData));
+
+          // Redirect to role selection page
+          window.location.href = "profile.html";
+        }
+      } else {
+        alert("Signed In successfully!");
+      }
+    });
+  </script>
+</body>
+</html>

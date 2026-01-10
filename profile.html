@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 450px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+        }
+
+        .form-header {
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .form-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .form-header p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .form-content {
+            padding: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1.5px solid #ddd;
+            font-size: 1rem;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26,115,232,0.15);
+        }
+
+        .input-group input[readonly] {
+            background: #f2f2f2;
+            cursor: not-allowed;
+        }
+
+        .required::after {
+            content: " *";
+            color: red;
+        }
+
+        .session-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .session-row .input-group {
+            flex: 1;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .submit-btn.loading {
+            opacity: 0.7;
+            pointer-events: none;
+            color: transparent;
+            position: relative;
+        }
+
+        .submit-btn.loading::after {
+            content: "";
+            width: 22px;
+            height: 22px;
+            border: 3px solid rgba(255,255,255,0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .error input,
+        .error select {
+            border-color: red;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .error .error-message {
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            .session-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <div class="form-header">
+        <h2>Complete Your Profile</h2>
+        <p>Fill the remaining details</p>
+    </div>
+
+    <div class="form-content">
+        <form id="profileForm">
+
+            <div class="input-group">
+                <label class="required">Full Name</label>
+                <input type="text" id="name" readonly>
+            </div>
+
+            <div class="input-group">
+                <label class="required">Email</label>
+                <input type="email" id="email" readonly>
+            </div>
+
+            <div class="input-group">
+                <label class="required">Roll Number</label>
+                <input type="text" id="roll" required>
+                <div class="error-message">Required</div>
+            </div>
+
+            <div class="input-group">
+                <label class="required">Date of Birth</label>
+                <input type="date" id="birthdate" required>
+                <div class="error-message">Required</div>
+            </div>
+
+            <div class="input-group">
+                <label class="required">Registration Number</label>
+                <input type="text" id="reg" required>
+                <div class="error-message">Required</div>
+            </div>
+
+            <div class="input-group">
+                <label class="required">Stream</label>
+                <select id="stream" required>
+                    <option value="">Select</option>
+                    <option value="CST">Computer Science & Technology</option>
+                    <option value="ETC">Electronics & Telecommunication</option>
+                    <option value="Civil">Civil Engineering</option>
+                    <option value="EE">Electrical Engineering</option>
+                    <option value="ME">Mechanical Engineering</option>
+                </select>
+                <div class="error-message">Required</div>
+            </div>
+
+            <div class="session-row">
+                <div class="input-group">
+                    <label class="required">Session Start</label>
+                    <select id="sessionStart" required></select>
+                    <div class="error-message">Required</div>
+                </div>
+
+                <div class="input-group">
+                    <label class="required">Session End</label>
+                    <select id="sessionEnd" required></select>
+                    <div class="error-message">Required</div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="required">Academic Year</label>
+                <select id="year" required>
+                    <option value="1">1st Year</option>
+                    <option value="2">2nd Year</option>
+                    <option value="3">3rd Year</option>
+                    <option value="4">4th Year</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label class="required">Course</label>
+                <input type="text" id="course" required>
+                <div class="error-message">Required</div>
+            </div>
+
+            <button class="submit-btn" type="submit">Save & Continue</button>
+        </form>
+    </div>
+</div>
+
+<script>
+/* ================= INITIAL DATA ================= */
+const signupData = JSON.parse(localStorage.getItem("signupData"));
+
+if (!signupData) {
+    alert("Please signup first");
+    window.location.href = "login.html";
+}
+
+document.getElementById("name").value = signupData.name;
+document.getElementById("email").value = signupData.email;
+
+/* ================= SESSION YEARS ================= */
+const start = document.getElementById("sessionStart");
+const end = document.getElementById("sessionEnd");
+const currentYear = new Date().getFullYear();
+
+for (let y = currentYear - 10; y <= currentYear + 6; y++) {
+    start.add(new Option(y, y));
+    end.add(new Option(y, y));
+}
+
+start.addEventListener("change", () => {
+    end.value = parseInt(start.value) + 3;
+});
+
+/* ================= FORM SUBMIT ================= */
+const form = document.getElementById("profileForm");
+const btn = document.querySelector(".submit-btn");
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    let valid = true;
+    document.querySelectorAll("[required]").forEach(el => {
+        const group = el.closest(".input-group");
+        if (!el.value.trim()) {
+            group.classList.add("error");
+            valid = false;
+        } else {
+            group.classList.remove("error");
+        }
+    });
+
+    if (!valid) return alert("Please fill all required fields");
+
+    const payload = {
+        name: signupData.name,
+        email: signupData.email,
+        roll: roll.value.trim(),
+        birthdate: birthdate.value,
+        registration: reg.value.trim(),
+        stream: stream.value,
+        session: `${start.value}-${end.value}`,
+        year: year.value,
+        course: course.value.trim()
+    };
+
+    btn.classList.add("loading");
+
+    try {
+        const res = await fetch("http://localhost:5000/api/profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
+
+        /* ===== SAVE REQUIRED DATA FOR DASHBOARD ===== */
+        localStorage.setItem("studentProfile", JSON.stringify({
+            name: signupData.name,
+            email: signupData.email,
+            roll: roll.value.trim(),
+            stream: stream.value,
+            academicYear: year.value,
+            session: `${start.value}-${end.value}`
+        }));
+
+        alert("Profile saved successfully");
+        window.location.href = "dashboard.html";
+
+    } catch (err) {
+        alert("Server Error: " + err.message);
+    } finally {
+        btn.classList.remove("loading");
+    }
+});
+</script>
+
+</body>
+</html>

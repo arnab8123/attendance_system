@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>College Attendance System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-dark: #0d47a1;
+      --secondary: #f8f9fa;
+      --text: #202124;
+      --text-light: #5f6368;
+      --background: #ffffff;
+      --card-bg: #f8f9fa;
+      --success: #34a853;
+      --warning: #f9ab00;
+      --danger: #ea4335;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+      --header-height: 80px;
+      --header-bg: #1a73e8;
+      --header-text: #ffffff;
+    }
+
+    .dark-mode {
+      --primary: #4285f4;
+      --primary-dark: #8ab4f8;
+      --secondary: #202124;
+      --text: #e8eaed;
+      --text-light: #9aa0a6;
+      --background: #000000;
+      --card-bg: #1e1e1e;
+      --success: #81c995;
+      --warning: #fde293;
+      --danger: #f28b82;
+      --shadow: rgba(0, 0, 0, 0.3);
+      --header-bg: #1a73e8;
+      --header-text: #ffffff;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: var(--transition);
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      padding-top: calc(var(--header-height) + 20px);
+      position: relative;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* === Excel-style spotlight grid background === */
+    .grid-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 80px 25px;
+      background-color: var(--grid-bg);
+      pointer-events: none;
+      z-index: 0;
+      -webkit-mask-image: radial-gradient(circle 400px at var(--x, 50%) var(--y, 50%), rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%);
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-size: cover;
+      mask-image: radial-gradient(circle 400px at var(--x, 50%) var(--y, 50%), rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%);
+      mask-repeat: no-repeat;
+      mask-size: cover;
+      opacity: 0;
+      transition: opacity 0.4s ease, mask-position 0.2s ease, -webkit-mask-position 0.2s ease;
+    }
+    .grid-background.active { opacity: 1; }
+
+    :root {
+      --grid-color: #00000020;
+      --grid-bg: #ffffff;
+    }
+    .dark-mode {
+      --grid-color: #fff5f520;
+      --grid-bg: #000000;
+    }
+
+    /* Floating Rounded Blue Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 30px;
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 1200px;
+      height: var(--header-height);
+      background-color: var(--header-bg);
+      z-index: 1000;
+      box-shadow: 0 5px 20px var(--shadow);
+      border-radius: 50px;
+      opacity: 0;
+      animation: slideDown 0.8s ease forwards;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo i {
+      font-size: 2rem;
+      color: var(--header-text);
+    }
+    .logo h1 {
+      font-size: 1.5rem;
+      color: var(--header-text);
+      font-weight: 700;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 25px;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--header-text);
+      font-weight: 500;
+      position: relative;
+      padding: 8px 5px;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 0;
+      height: 3px;
+      background: var(--header-text);
+      transition: var(--transition);
+      border-radius: 2px;
+    }
+    .nav-links a:hover::after { width: 100%; }
+
+    /* Enhanced Theme Toggle Button */
+    .theme-toggle {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      color: var(--header-text);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      transition: var(--transition);
+      overflow: hidden;
+      margin-left: 15px;
+    }
+    .theme-toggle i { font-size: 1.2rem; }
+
+    /* Hamburger Button */
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.6rem;
+      color: var(--header-text);
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    /* Mobile Nav */
+    @media (max-width: 768px) {
+      .nav-links {
+        position: absolute;
+        top: var(--header-height);
+        right: 20px;
+        background: var(--header-bg);
+        flex-direction: column;
+        gap: 15px;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 8px 20px var(--shadow);
+        display: none;
+      }
+      .nav-links.active {
+        display: flex;
+        animation: slideDownMenu 0.3s ease;
+      }
+      .hamburger { display: block; }
+    }
+
+    @keyframes slideDownMenu {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideDown {
+      from { transform: translate(-50%, -100%); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Excel grid spotlight background -->
+  <div class="grid-background" id="gridBg"></div>
+
+  <div class="container">
+    <!-- Floating Header -->
+    <header>
+      <div class="logo">
+        <i class="fas fa-graduation-cap"></i>
+        <h1>College Attendance System</h1>
+      </div>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="#features">Features</a>
+        <a href="#stats">Statistics</a>
+        <a href="#demo">Demo</a>
+        <a href="#contact">Contact</a>
+      </nav>
+
+      <div style="display: flex; align-items: center;">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle Theme">
+          <i class="fas fa-moon"></i>
+        </button>
+        <button class="hamburger" id="hamburger" aria-label="Menu">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </header>
+  </div>
+
+  <script>
+    const themeToggle = document.getElementById("themeToggle");
+    const body = document.body;
+
+    let savedTheme = localStorage.getItem("theme");
+    if (!savedTheme) {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      savedTheme = prefersDark ? "dark-mode" : "light-mode";
+      localStorage.setItem("theme", savedTheme);
+    }
+    body.classList.add(savedTheme);
+    themeToggle.innerHTML = body.classList.contains("dark-mode")
+      ? '<i class="fas fa-sun"></i>'
+      : '<i class="fas fa-moon"></i>';
+
+    themeToggle.addEventListener("click", () => {
+      body.classList.toggle("dark-mode");
+      const newTheme = body.classList.contains("dark-mode") ? "dark-mode" : "light-mode";
+      localStorage.setItem("theme", newTheme);
+      themeToggle.innerHTML = body.classList.contains("dark-mode")
+        ? '<i class="fas fa-sun"></i>'
+        : '<i class="fas fa-moon"></i>';
+    });
+
+    // Excel spotlight effect
+    const gridBg = document.getElementById("gridBg");
+    document.addEventListener("mousemove", e => {
+      gridBg.classList.add("active");
+      gridBg.style.setProperty("--x", e.clientX + "px");
+      gridBg.style.setProperty("--y", e.clientY + "px");
+    });
+    document.addEventListener("mouseleave", () => {
+      gridBg.classList.remove("active");
+    });
+
+    // Hamburger menu toggle
+    const hamburger = document.getElementById("hamburger");
+    const navLinks = document.getElementById("navLinks");
+
+    hamburger.addEventListener("click", () => {
+      navLinks.classList.toggle("active");
+      hamburger.innerHTML = navLinks.classList.contains("active")
+        ? '<i class="fas fa-times"></i>'
+        : '<i class="fas fa-bars"></i>';
+    });
+  </script>
+</body>
+</html>

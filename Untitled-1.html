@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>BlinkID - Secure Authentication (MediaPipe)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* (Your original CSS unchanged except minor additions) */
+        :root {
+            --primary: #4a6fa5;
+            --primary-light: #6b8fc0;
+            --primary-dark: #345888;
+            --secondary: #166088;
+            --accent: #4cb5f5;
+            --accent-light: #7ac9f7;
+            --light: #f8f9fa;
+            --light-gray: #e9ecef;
+            --mid-gray: #ced4da;
+            --dark: #343a40;
+            --success: #28a745;
+            --success-light: #d4edda;
+            --danger: #dc3545;
+            --danger-light: #f8d7da;
+            --warning: #ffc107;
+            --warning-light: #fff3cd;
+            --info: #17a2b8;
+            --border-radius: 16px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            --transition: all 0.3s ease;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif}
+        body{background:linear-gradient(135deg,#f5f7fa 0%,#e4e9f2 100%);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
+        .container{background-color:white;border-radius:var(--border-radius);box-shadow:var(--shadow);width:100%;max-width:700px;overflow:hidden}
+        header{background:linear-gradient(to right,var(--primary),var(--secondary));color:white;padding:25px;text-align:center;position:relative}
+        .logo{font-size:28px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:10px}
+        .logo i{color:var(--accent-light)}
+        .subtitle{font-size:16px;opacity:0.9;font-weight:300}
+        .content{padding:30px}
+        .phase{display:none;animation:fadeIn 0.5s ease}
+        .active{display:block}
+        .instructions{background-color:var(--light);border-left:4px solid var(--accent);padding:20px;margin-bottom:25px;border-radius:0 var(--border-radius) var(--border-radius) 0;display:flex;align-items:flex-start;gap:15px}
+        .instructions i{font-size:24px;color:var(--accent);flex-shrink:0}
+        .camera-container{position:relative;width:100%;margin:20px 0;background-color:var(--light-gray);border-radius:var(--border-radius);overflow:hidden;height:340px;display:flex;justify-content:center;align-items:center;color:var(--mid-gray);box-shadow:inset 0 0 10px rgba(0,0,0,0.05)}
+        #video, #canvas { position:absolute; width:100%; height:100%; object-fit:cover; border-radius:var(--border-radius); }
+        #overlayCanvas{ position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; border-radius:var(--border-radius); }
+        #capturedImage{ max-width:100%; border-radius:var(--border-radius); display:none; margin:20px auto; border:2px solid var(--primary); box-shadow:var(--shadow); }
+        .controls{ display:flex; flex-wrap:wrap; gap:15px; margin:25px 0; justify-content:center; }
+        button{ padding:14px 28px; border:none; border-radius:50px; cursor:pointer; font-weight:600; transition:var(--transition); display:flex; align-items:center; gap:10px; font-size:16px; }
+        .btn-primary{ background-color:var(--primary); color:white; box-shadow:0 4px 8px rgba(74,111,165,0.25) }
+        .btn-primary:hover:not(:disabled){ background-color:var(--primary-dark); transform:translateY(-2px) }
+        .btn-secondary{ background-color:var(--light); color:var(--dark); border:1px solid var(--mid-gray) }
+        .btn-success{ background-color:var(--success); color:white }
+        .btn-accent{ background-color:var(--accent); color:white }
+        .btn-disabled{ background-color:var(--mid-gray); color:var(--dark); cursor:not-allowed; }
+        .progress-container{ height:10px; background-color:var(--light-gray); border-radius:5px; margin:25px 0; overflow:hidden; box-shadow:inset 0 1px 2px rgba(0,0,0,0.1) }
+        .progress-bar{ height:100%; background:linear-gradient(to right,var(--accent),var(--primary)); width:0%; transition:width 0.5s ease; border-radius:5px; }
+        .status{text-align:center;margin:15px 0;font-weight:500;padding:12px;border-radius:var(--border-radius)} 
+        .success{ background-color:var(--success-light); color:var(--success); border:1px solid #c3e6cb }
+        .warning{ background-color:var(--warning-light); color:var(--warning); border:1px solid #ffeaa7 }
+        .error{ background-color:var(--danger-light); color:var(--danger); border:1px solid #f5c6cb }
+        .info{ background-color:#e8f4f8; color:var(--info); border:1px solid #bee5eb }
+        .face-feedback{ position:absolute; top:15px; left:15px; background:rgba(255,255,255,0.95); padding:10px 15px; border-radius:30px; display:flex; align-items:center; gap:8px; font-size:14px; box-shadow:0 2px 5px rgba(0,0,0,0.1); z-index:10 }
+        .no-face-overlay{ position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); display:flex; flex-direction:column; justify-content:center; align-items:center; color:white; border-radius:var(--border-radius); z-index:5; padding:20px; text-align:center }
+        .no-face-overlay i{ font-size:40px; margin-bottom:15px; color:var(--danger-light) }
+        .result-container{ text-align:center; padding:30px; display:none; background-color:var(--success-light); border-radius:var(--border-radius); margin:20px 0; border:1px solid #c3e6cb }
+        .result-icon{ font-size:70px; margin-bottom:20px; color:var(--success) }
+        .step-indicator{ display:flex; justify-content:space-between; margin-bottom:30px; position:relative }
+        .step-indicator::before{ content:''; position:absolute; top:20px; left:0; right:0; height:2px; background-color:var(--light-gray); z-index:1 }
+        .step{ display:flex; flex-direction:column; align-items:center; position:relative; z-index:2 }
+        .step-number{ width:40px; height:40px; border-radius:50%; background-color:var(--light-gray); color:var(--dark); display:flex; align-items:center; justify-content:center; font-weight:bold; margin-bottom:10px; transition:var(--transition) }
+        .step.active .step-number{ background-color:var(--primary); color:white; box-shadow:0 0 0 4px var(--primary-light) }
+        .step.completed .step-number{ background-color:var(--success); color:white }
+        .step-text{ font-size:14px; text-align:center; color:var(--dark); font-weight:500 }
+        .help-text{text-align:center;color:#6c757d;font-size:14px;margin:10px 0}
+        .nav-buttons{ display:flex; justify-content:space-between; margin-top:20px }
+        footer{ text-align:center; padding:20px; color:#6c757d; font-size:14px; border-top:1px solid var(--light-gray); background-color:var(--light) }
+        .privacy-note{ display:flex; align-items:center; justify-content:center; gap:8px; margin-top:15px; color:#6c757d; font-size:13px }
+        @keyframes fadeIn{ from{opacity:0} to{opacity:1} }
+        @media (max-width:600px){ .container{ max-width:100% } .content{ padding:20px } .camera-container{ height:250px } .controls{ flex-direction:column } button{ width:100%; justify-content:center } .nav-buttons{ flex-direction:column; gap:10px } .step-indicator{ flex-direction:column; gap:25px; align-items:flex-start } .step-indicator::before{ display:none } .step{ flex-direction:row; gap:15px } .step-text{ text-align:left } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-eye"></i>
+                <span>BlinkID</span>
+            </div>
+            <p class="subtitle">Secure authentication with blink detection technology</p>
+        </header>
+
+        <div class="content">
+            <div class="step-indicator">
+                <div class="step active" id="step1">
+                    <div class="step-number">1</div>
+                    <div class="step-text">Enrollment</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-number">2</div>
+                    <div class="step-text">Verification</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-number">3</div>
+                    <div class="step-text">Authentication</div>
+                </div>
+            </div>
+
+            <!-- Enrollment Phase -->
+            <div id="enrollmentPhase" class="phase active">
+                <h2>Register Your Identity</h2>
+                <div class="instructions">
+                    <i class="fas fa-info-circle"></i>
+                    <p>To get started, we need to capture an image of your face. This will be used to create your unique biometric profile. Make sure you're in a well-lit area and your face is clearly visible.</p>
+                </div>
+
+                <div class="camera-container" id="enrollmentCamera">
+                    <video id="enrollmentVideo" autoplay playsinline muted></video>
+                    <canvas id="enrollmentCanvas" style="display:none"></canvas>
+                    <canvas id="overlayCanvas"></canvas>
+
+                    <div class="face-feedback" id="enrollFaceFeedback" aria-live="polite">
+                        <i class="fas fa-search"></i>
+                        <span>Waiting for camera...</span>
+                    </div>
+
+                    <div class="no-face-overlay" id="enrollNoFaceOverlay" style="display:flex">
+                        <i class="fas fa-user-slash"></i>
+                        <h3>No Face Detected</h3>
+                        <p>Please position your face in the frame to continue</p>
+                    </div>
+                </div>
+
+                <img id="capturedImage" alt="Captured image">
+
+                <div class="controls">
+                    <button id="startEnrollmentCamera" class="btn-primary" aria-pressed="false">
+                        <i class="fas fa-camera"></i> Start Camera
+                    </button>
+                    <button id="captureEnrollment" class="btn-accent btn-disabled" disabled>
+                        <i class="fas fa-camera-retro"></i> Capture Image
+                    </button>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-bar" id="enrollmentProgress"></div>
+                </div>
+
+                <p class="status info" id="enrollmentStatus" aria-live="polite">
+                    <i class="fas fa-info-circle"></i> Ready to enroll. Please start your camera.
+                </p>
+
+                <div class="nav-buttons">
+                    <div></div>
+                    <button id="nextToAuth" class="btn-success btn-disabled" disabled>
+                        Continue to Verification <i class="fas fa-arrow-right" style="margin-left:10px"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Authentication Phase -->
+            <div id="authenticationPhase" class="phase">
+                <h2>Verify Your Identity</h2>
+                <div class="instructions">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Please look into the camera and blink naturally. We'll verify your identity using facial recognition and blink detection to ensure you're a real person.</p>
+                </div>
+
+                <div class="camera-container" id="authCamera">
+                    <video id="authVideo" autoplay playsinline muted></video>
+                    <canvas id="authCanvas" style="display:none"></canvas>
+                    <canvas id="authOverlayCanvas"></canvas>
+
+                    <div class="face-feedback" id="authFaceFeedback" aria-live="polite">
+                        <i class="fas fa-search"></i>
+                        <span>Waiting for camera...</span>
+                    </div>
+
+                    <div class="no-face-overlay" id="authNoFaceOverlay" style="display:flex">
+                        <i class="fas fa-user-slash"></i>
+                        <h3>No Face Detected</h3>
+                        <p>Please position your face in the frame to continue</p>
+                    </div>
+                </div>
+
+                <div style="margin-top:12px" class="blink-indicator" id="blinkIndicator" title="Blink indicator"></div>
+                <p class="status warning" id="blinkStatus" aria-live="polite">
+                    <i class="fas fa-eye"></i> Please blink naturally when prompted
+                </p>
+
+                <div class="progress-container">
+                    <div class="progress-bar" id="authProgress"></div>
+                </div>
+
+                <p class="status info" id="authStatus" aria-live="polite">
+                    <i class="fas fa-info-circle"></i> Ready to authenticate. Please start your camera.
+                </p>
+
+                <div class="controls">
+                    <button id="startAuthCamera" class="btn-primary" aria-pressed="false">
+                        <i class="fas fa-camera"></i> Start Camera
+                    </button>
+                    <button id="beginAuth" class="btn-success btn-disabled" disabled>
+                        <i class="fas fa-play-circle"></i> Begin Authentication
+                    </button>
+                </div>
+
+                <div class="result-container" id="authResult">
+                    <div class="result-icon"><i class="fas fa-check-circle"></i></div>
+                    <h3>Authentication Successful!</h3>
+                    <p>Your identity has been verified successfully.</p>
+                    <button id="restart" class="btn-primary">
+                        <i class="fas fa-redo"></i> Start Over
+                    </button>
+                </div>
+
+                <div class="nav-buttons">
+                    <button id="backToEnrollment" class="btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Enrollment
+                    </button>
+                    <div></div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>BlinkID Authentication System | This is a demonstration prototype</p>
+            <div class="privacy-note">
+                <i class="fas fa-shield-alt"></i>
+                <span>We value your privacy. Your biometric data is processed locally in your browser (demo).</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- MediaPipe & helpers (CDN) -->
+    <!-- Note: These script URLs are the standard public CDN for MediaPipe and camera utils.
+         Make sure you have network access to load them, or install locally for offline usage. -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.4/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.4/control_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.4/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js"></script>
+
+    <script>
+    // ======= MediaPipe + Blink Detection Integration =========
+    // Uses FaceMesh landmarks to compute Eye Aspect Ratio (EAR) and detect blinks.
+    // Eye landmark indices for MediaPipe FaceMesh:
+    // left: [33, 160, 158, 133, 153, 144]
+    // right: [362, 385, 387, 263, 373, 380]
+    // EAR = (||p2-p6|| + ||p3-p5||) / (2 * ||p1-p4||)
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Elements
+        const enrollmentPhase = document.getElementById('enrollmentPhase');
+        const authenticationPhase = document.getElementById('authenticationPhase');
+
+        const enrollmentVideo = document.getElementById('enrollmentVideo');
+        const authVideo = document.getElementById('authVideo');
+
+        const overlayCanvas = document.getElementById('overlayCanvas');
+        const authOverlayCanvas = document.getElementById('authOverlayCanvas');
+
+        const enrollFaceFeedback = document.getElementById('enrollFaceFeedback');
+        const authFaceFeedback = document.getElementById('authFaceFeedback');
+
+        const enrollNoFaceOverlay = document.getElementById('enrollNoFaceOverlay');
+        const authNoFaceOverlay = document.getElementById('authNoFaceOverlay');
+
+        const startEnrollmentCameraBtn = document.getElementById('startEnrollmentCamera');
+        const captureEnrollmentBtn = document.getElementById('captureEnrollment');
+        const nextToAuthBtn = document.getElementById('nextToAuth');
+        const startAuthCameraBtn = document.getElementById('startAuthCamera');
+        const beginAuthBtn = document.getElementById('beginAuth');
+        const backToEnrollmentBtn = document.getElementById('backToEnrollment');
+        const restartBtn = document.getElementById('restart');
+
+        const enrollmentStatus = document.getElementById('enrollmentStatus');
+        const authStatus = document.getElementById('authStatus');
+        const blinkStatus = document.getElementById('blinkStatus');
+        const enrollmentProgress = document.getElementById('enrollmentProgress');
+        const authProgress = document.getElementById('authProgress');
+        const authResult = document.getElementById('authResult');
+        const capturedImage = document.getElementById('capturedImage');
+        const blinkIndicator = document.getElementById('blinkIndicator');
+
+        // State
+        let enrollmentCamera = null;
+        let authCamera = null;
+        let enrollmentFaceDetected = false;
+        let authFaceDetected = false;
+        let enrollmentFaceMesh = null;
+        let authFaceMesh = null;
+        let enrollmentStreamActive = false;
+        let authStreamActive = false;
+
+        // Blink detection params
+        const LEFT_EYE = [33, 160, 158, 133, 153, 144];
+        const RIGHT_EYE = [362, 385, 387, 263, 373, 380];
+        const EAR_THRESHOLD = 0.24;     // tweak if needed
+        const EAR_CONSEC_FRAMES = 2;    // frames EAR must be below threshold to count as blink
+        let earCounter = 0;
+        let blinkCount = 0;
+        let authProgressVal = 0;
+        let authProgressInterval = null;
+
+        // Utility functions
+        function dist(a, b) {
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            return Math.hypot(dx, dy);
+        }
+
+        function computeEAR(landmarks, eyeIndices) {
+            // landmarks are MediaPipe normalized coordinates {x, y, z}
+            const p1 = landmarks[eyeIndices[0]];
+            const p2 = landmarks[eyeIndices[1]];
+            const p3 = landmarks[eyeIndices[2]];
+            const p4 = landmarks[eyeIndices[3]];
+            const p5 = landmarks[eyeIndices[4]];
+            const p6 = landmarks[eyeIndices[5]];
+
+            const vertical1 = dist(p2, p6);
+            const vertical2 = dist(p3, p5);
+            const horizontal = dist(p1, p4);
+
+            if (horizontal === 0) return 0;
+            return (vertical1 + vertical2) / (2.0 * horizontal);
+        }
+
+        function drawLandmarks(ctx, landmarks, canvasWidth, canvasHeight) {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            ctx.strokeStyle = 'rgba(76,181,245,0.9)';
+            ctx.lineWidth = 1.5;
+            ctx.fillStyle = 'rgba(76,181,245,0.8)';
+
+            // draw a small dot for select landmarks (eyes)
+            const indices = LEFT_EYE.concat(RIGHT_EYE);
+            for (const idx of indices) {
+                const lm = landmarks[idx];
+                const x = lm.x * canvasWidth;
+                const y = lm.y * canvasHeight;
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            // bounding box
+            let minX = 1, minY = 1, maxX = 0, maxY = 0;
+            for (const lm of landmarks) {
+                if (lm.x < minX) minX = lm.x;
+                if (lm.y < minY) minY = lm.y;
+                if (lm.x > maxX) maxX = lm.x;
+                if (lm.y > maxY) maxY = lm.y;
+            }
+            // expand a bit
+            minX = Math.max(0, minX - 0.03);
+            minY = Math.max(0, minY - 0.03);
+            maxX = Math.min(1, maxX + 0.03);
+            maxY = Math.min(1, maxY + 0.03);
+
+            ctx.strokeStyle = 'rgba(52,88,136,0.9)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.rect(minX * canvasWidth, minY * canvasHeight, (maxX - minX) * canvasWidth, (maxY - minY) * canvasHeight);
+            ctx.stroke();
+        }
+
+        // -------------------- Enrollment FaceMesh --------------------
+        function setupEnrollmentFaceMesh() {
+            enrollmentFaceMesh = new FaceMesh({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
+            });
+            enrollmentFaceMesh.setOptions({
+                maxNumFaces: 1,
+                refineLandmarks: true,
+                minDetectionConfidence: 0.6,
+                minTrackingConfidence: 0.5
+            });
+            enrollmentFaceMesh.onResults(onEnrollmentResults);
+        }
+
+        function startEnrollmentCamera() {
+            if (enrollmentStreamActive) {
+                stopEnrollmentCamera();
+                return;
+            }
+
+            setupEnrollmentFaceMesh();
+
+            enrollmentCamera = new Camera(enrollmentVideo, {
+                onFrame: async () => {
+                    await enrollmentFaceMesh.send({image: enrollmentVideo});
+                },
+                width: 1280,
+                height: 720
+            });
+
+            enrollmentCamera.start().then(() => {
+                enrollmentStreamActive = true;
+                startEnrollmentCameraBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Camera';
+                startEnrollmentCameraBtn.setAttribute('aria-pressed', 'true');
+                enrollFaceFeedback.innerHTML = '<i class="fas fa-search"></i> Looking for face...';
+                enrollmentStatus.textContent = 'Camera active - positioning your face...';
+                enrollmentStatus.className = 'status info';
+            }).catch(err => {
+                console.error(err);
+                enrollmentStatus.textContent = 'Cannot access camera: ' + (err.message || err);
+                enrollmentStatus.className = 'status error';
+            });
+        }
+
+        function stopEnrollmentCamera() {
+            if (enrollmentCamera) {
+                try { enrollmentCamera.stop(); } catch(e) {}
+                enrollmentCamera = null;
+            }
+            enrollmentStreamActive = false;
+            startEnrollmentCameraBtn.innerHTML = '<i class="fas fa-camera"></i> Start Camera';
+            startEnrollmentCameraBtn.setAttribute('aria-pressed', 'false');
+            captureEnrollmentBtn.disabled = true;
+            captureEnrollmentBtn.classList.add('btn-disabled');
+            enrollmentStatus.textContent = 'Camera stopped';
+            enrollmentStatus.className = 'status info';
+            enrollFaceFeedback.innerHTML = '<i class="fas fa-times-circle" style="color: var(--danger)"></i> No face detected';
+            enrollNoFaceOverlay.style.display = 'flex';
+            // clear overlay
+            const ctx = overlayCanvas.getContext('2d');
+            ctx && ctx.clearRect(0,0,overlayCanvas.width, overlayCanvas.height);
+        }
+
+        function onEnrollmentResults(results) {
+            // adjust canvas size to video
+            const video = enrollmentVideo;
+            overlayCanvas.width = video.videoWidth || video.clientWidth;
+            overlayCanvas.height = video.videoHeight || video.clientHeight;
+            const ctx = overlayCanvas.getContext('2d');
+
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                enrollmentFaceDetected = true;
+                enrollNoFaceOverlay.style.display = 'none';
+                enrollFaceFeedback.innerHTML = '<i class="fas fa-check-circle" style="color: var(--success)"></i> Face detected';
+                enrollmentStatus.textContent = 'Face detected - ready to capture';
+                enrollmentStatus.className = 'status success';
+                captureEnrollmentBtn.disabled = false;
+                captureEnrollmentBtn.classList.remove('btn-disabled');
+
+                // draw landmarks + bbox
+                drawLandmarks(ctx, results.multiFaceLandmarks[0], overlayCanvas.width, overlayCanvas.height);
+            } else {
+                enrollmentFaceDetected = false;
+                enrollNoFaceOverlay.style.display = 'flex';
+                enrollFaceFeedback.innerHTML = '<i class="fas fa-times-circle" style="color: var(--danger)"></i> No face detected';
+                enrollmentStatus.textContent = 'No face detected - please position yourself in frame';
+                enrollmentStatus.className = 'status error';
+                captureEnrollmentBtn.disabled = true;
+                captureEnrollmentBtn.classList.add('btn-disabled');
+                ctx && ctx.clearRect(0,0,overlayCanvas.width, overlayCanvas.height);
+            }
+        }
+
+        // -------------------- Auth FaceMesh + Blink --------------------
+        function setupAuthFaceMesh() {
+            authFaceMesh = new FaceMesh({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`
+            });
+            authFaceMesh.setOptions({
+                maxNumFaces: 1,
+                refineLandmarks: true,
+                minDetectionConfidence: 0.6,
+                minTrackingConfidence: 0.5
+            });
+            authFaceMesh.onResults(onAuthResults);
+        }
+
+        function startAuthCamera() {
+            if (authStreamActive) {
+                stopAuthCamera();
+                return;
+            }
+
+            setupAuthFaceMesh();
+
+            authCamera = new Camera(authVideo, {
+                onFrame: async () => {
+                    await authFaceMesh.send({image: authVideo});
+                },
+                width: 1280,
+                height: 720
+            });
+
+            authCamera.start().then(() => {
+                authStreamActive = true;
+                startAuthCameraBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Camera';
+                startAuthCameraBtn.setAttribute('aria-pressed', 'true');
+                authFaceFeedback.innerHTML = '<i class="fas fa-search"></i> Looking for face...';
+                authStatus.textContent = 'Camera active - positioning your face...';
+                authStatus.className = 'status info';
+            }).catch(err => {
+                console.error(err);
+                authStatus.textContent = 'Cannot access camera: ' + (err.message || err);
+                authStatus.className = 'status error';
+            });
+        }
+
+        function stopAuthCamera() {
+            if (authCamera) {
+                try { authCamera.stop(); } catch(e) {}
+                authCamera = null;
+            }
+            authStreamActive = false;
+            startAuthCameraBtn.innerHTML = '<i class="fas fa-camera"></i> Start Camera';
+            startAuthCameraBtn.setAttribute('aria-pressed', 'false');
+            beginAuthBtn.disabled = true;
+            beginAuthBtn.classList.add('btn-disabled');
+
+            authStatus.textContent = 'Camera stopped';
+            authStatus.className = 'status info';
+            authFaceFeedback.innerHTML = '<i class="fas fa-times-circle" style="color: var(--danger)"></i> No face detected';
+            authNoFaceOverlay.style.display = 'flex';
+            const ctx = authOverlayCanvas.getContext('2d');
+            ctx && ctx.clearRect(0,0,authOverlayCanvas.width, authOverlayCanvas.height);
+
+            // stop any running auth progress
+            if (authProgressInterval) {
+                clearInterval(authProgressInterval);
+                authProgressInterval = null;
+            }
+            authProgressVal = 0;
+            authProgress.style.width = '0%';
+            blinkCount = 0;
+            earCounter = 0;
+            blinkIndicator.style.boxShadow = '';
+        }
+
+        function onAuthResults(results) {
+            // setup canvas size
+            const video = authVideo;
+            authOverlayCanvas.width = video.videoWidth || video.clientWidth;
+            authOverlayCanvas.height = video.videoHeight || video.clientHeight;
+            const ctx = authOverlayCanvas.getContext('2d');
+
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                authFaceDetected = true;
+                authNoFaceOverlay.style.display = 'none';
+                authFaceFeedback.innerHTML = '<i class="fas fa-check-circle" style="color: var(--success)"></i> Face detected';
+                authStatus.textContent = 'Face detected - ready to authenticate';
+                authStatus.className = 'status success';
+                beginAuthBtn.disabled = false;
+                beginAuthBtn.classList.remove('btn-disabled');
+
+                // draw landmarks
+                const landmarks = results.multiFaceLandmarks[0];
+                drawLandmarks(ctx, landmarks, authOverlayCanvas.width, authOverlayCanvas.height);
+
+                // blink detection
+                const leftEAR = computeEAR(landmarks, LEFT_EYE);
+                const rightEAR = computeEAR(landmarks, RIGHT_EYE);
+                const ear = (leftEAR + rightEAR) / 2.0;
+
+                // animate blinkIndicator (visual cue)
+                if (ear < EAR_THRESHOLD) {
+                    earCounter += 1;
+                    blinkIndicator.style.transform = 'scale(0.9)';
+                    blinkIndicator.style.opacity = '0.6';
+                } else {
+                    if (earCounter >= EAR_CONSEC_FRAMES) {
+                        blinkCount += 1;
+                        // flash indicator
+                        blinkIndicator.style.boxShadow = '0 0 18px rgba(40,167,69,0.9)';
+                        setTimeout(() => {
+                            blinkIndicator.style.boxShadow = '';
+                        }, 400);
+                        blinkStatus.innerHTML = `<i class="fas fa-eye"></i> Blink detected (${blinkCount})`;
+                        blinkStatus.className = 'status success';
+                        setTimeout(() => {
+                            blinkStatus.className = 'status info';
+                            blinkStatus.innerHTML = '<i class="fas fa-eye"></i> Please blink naturally';
+                        }, 1100);
+                    }
+                    earCounter = 0;
+                    blinkIndicator.style.transform = 'scale(1)';
+                    blinkIndicator.style.opacity = '1';
+                }
+
+                // if authentication in progress, update progress based on blinks
+                // (auth flow uses beginAuthentication below to start timer)
+            } else {
+                authFaceDetected = false;
+                authNoFaceOverlay.style.display = 'flex';
+                authFaceFeedback.innerHTML = '<i class="fas fa-times-circle" style="color: var(--danger)"></i> No face detected';
+                authStatus.textContent = 'No face detected - please position yourself in frame';
+                authStatus.className = 'status error';
+                beginAuthBtn.disabled = true;
+                beginAuthBtn.classList.add('btn-disabled');
+                ctx && ctx.clearRect(0,0,authOverlayCanvas.width, authOverlayCanvas.height);
+            }
+        }
+
+        // -------------------- Capture Enrollment --------------------
+        function captureEnrollmentImage() {
+            if (!enrollmentFaceDetected) {
+                enrollmentStatus.textContent = 'Cannot capture image: No face detected';
+                enrollmentStatus.className = 'status error';
+                return;
+            }
+            const video = enrollmentVideo;
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 1280;
+            canvas.height = video.videoHeight || 720;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // show captured image
+            capturedImage.src = canvas.toDataURL('image/png');
+            capturedImage.style.display = 'block';
+
+            // Simulate processing (but faster since real detection used)
+            enrollmentStatus.textContent = 'Processing your image...';
+            enrollmentStatus.className = 'status info';
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 8;
+                enrollmentProgress.style.width = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    enrollmentStatus.textContent = 'Enrollment successful! Your facial features have been registered (demo).';
+                    enrollmentStatus.className = 'status success';
+                    nextToAuthBtn.disabled = false;
+                    nextToAuthBtn.classList.remove('btn-disabled');
+                    stopEnrollmentCamera();
+                }
+            }, 90);
+        }
+
+        // -------------------- Authentication Flow --------------------
+        function beginAuthentication() {
+            if (!authFaceDetected) {
+                authStatus.textContent = 'Cannot authenticate: No face detected';
+                authStatus.className = 'status error';
+                return;
+            }
+
+            // lock buttons
+            beginAuthBtn.disabled = true;
+            startAuthCameraBtn.disabled = true;
+            beginAuthBtn.classList.add('btn-disabled');
+            startAuthCameraBtn.classList.add('btn-disabled');
+
+            authStatus.textContent = 'Authenticating... Please blink naturally when prompted';
+            authStatus.className = 'status info';
+
+            // reset counters
+            blinkCount = 0;
+            earCounter = 0;
+            authProgressVal = 0;
+            authProgress.style.width = '0%';
+            authProgressInterval = setInterval(() => {
+                authProgressVal += 2; // 50 steps => ~5 seconds
+                authProgress.style.width = authProgressVal + '%';
+
+                // check blinkCount to determine success when progress completes
+                if (authProgressVal >= 100) {
+                    clearInterval(authProgressInterval);
+                    authProgressInterval = null;
+
+                    if (blinkCount >= 2) {
+                        authStatus.textContent = 'Authentication successful!';
+                        authStatus.className = 'status success';
+                        authResult.style.display = 'block';
+                        // advance step indicator
+                        document.getElementById('step2').classList.remove('active');
+                        document.getElementById('step3').classList.add('active');
+                        // stop camera to conserve resources
+                        stopAuthCamera();
+                    } else {
+                        authStatus.textContent = 'Authentication failed. Not enough blinks detected. Please try again.';
+                        authStatus.className = 'status error';
+                        beginAuthBtn.disabled = false;
+                        startAuthCameraBtn.disabled = false;
+                        beginAuthBtn.classList.remove('btn-disabled');
+                        startAuthCameraBtn.classList.remove('btn-disabled');
+                    }
+                }
+            }, 100);
+        }
+
+        // -------------------- Wiring UI --------------------
+        startEnrollmentCameraBtn.addEventListener('click', startEnrollmentCamera);
+        captureEnrollmentBtn.addEventListener('click', captureEnrollmentImage);
+        nextToAuthBtn.addEventListener('click', () => {
+            // proceed only if enrollment was done (next button enabled)
+            if (nextToAuthBtn.disabled) return;
+            switchPhase(authenticationPhase, enrollmentPhase);
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step2').classList.add('active');
+        });
+
+        startAuthCameraBtn.addEventListener('click', startAuthCamera);
+        beginAuthBtn.addEventListener('click', beginAuthentication);
+
+        backToEnrollmentBtn.addEventListener('click', () => {
+            switchPhase(enrollmentPhase, authenticationPhase);
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step1').classList.add('active');
+            // reset auth UI
+            authResult.style.display = 'none';
+            authProgress.style.width = '0%';
+        });
+
+        restartBtn.addEventListener('click', () => {
+            // reset everything
+            stopEnrollmentCamera();
+            stopAuthCamera();
+            capturedImage.style.display = 'none';
+            enrollmentProgress.style.width = '0%';
+            authProgress.style.width = '0%';
+            enrollmentStatus.textContent = 'Ready to enroll. Please start your camera.';
+            enrollmentStatus.className = 'status info';
+            authStatus.textContent = 'Ready to authenticate. Please start your camera.';
+            authStatus.className = 'status info';
+            blinkStatus.textContent = 'Please blink naturally when prompted';
+            blinkStatus.className = 'status warning';
+            authResult.style.display = 'none';
+            nextToAuthBtn.disabled = true;
+            nextToAuthBtn.classList.add('btn-disabled');
+            beginAuthBtn.disabled = true;
+            beginAuthBtn.classList.add('btn-disabled');
+            startAuthCameraBtn.disabled = false;
+            startAuthCameraBtn.classList.remove('btn-disabled');
+            switchPhase(enrollmentPhase, authenticationPhase);
+            document.getElementById('step1').classList.add('active');
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step3').classList.remove('active');
+        });
+
+        function switchPhase(show, hide) {
+            hide.classList.remove('active');
+            show.classList.add('active');
+        }
+
+        // Initialize: disable capture/auth until cameras active
+        captureEnrollmentBtn.disabled = true;
+        captureEnrollmentBtn.classList.add('btn-disabled');
+        beginAuthBtn.disabled = true;
+        beginAuthBtn.classList.add('btn-disabled');
+    });
+    </script>
+</body>
+</html>

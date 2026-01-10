@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendance Identity Enrollment</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+    --primary: #1a73e8;
+    --secondary: #0d47a1;
+    --accent: #34a853;
+    --bg: #f5f7ff;
+    --card-bg: #ffffff;
+    --text: #333333;
+    --text-light: #666666;
+    --shadow: rgba(26, 115, 232, 0.15);
+    --shadow-light: rgba(0, 0, 0, 0.08);
+    --border-radius: 20px;
+    --border-radius-small: 12px;
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+/* ===== HEADER ===== */
+.header {
+    background: var(--card-bg);
+    color: white;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    border-radius: var(--border-radius);
+    box-shadow: 0 10px 30px var(--shadow);
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+    z-index: 10;
+}
+
+.header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    z-index: -1;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header h1 i {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 10px;
+    border-radius: 50%;
+}
+
+.header .tagline {
+    font-size: 1rem;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+/* ===== USER INFO ===== */
+.user-info {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 15px 20px;
+    border-radius: var(--border-radius-small);
+    margin-top: 15px;
+    width: 100%;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-info span {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.user-info .name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.user-info .details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.user-info .details span {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+/* ===== MAIN CONTAINER ===== */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: var(--secondary);
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title i {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+/* ===== GRID LAYOUT ===== */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+/* ===== CARDS ===== */
+.card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 30px;
+    box-shadow: 0 8px 25px var(--shadow-light);
+    transition: var(--transition);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px var(--shadow);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+}
+
+.card-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.8rem;
+}
+
+.card h3 {
+    color: var(--secondary);
+    font-size: 1.4rem;
+    margin-bottom: 5px;
+}
+
+.card p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    margin-bottom: 25px;
+    flex-grow: 1;
+}
+
+/* ===== CAMERA SECTION ===== */
+.camera-container {
+    position: relative;
+    width: 100%;
+    border-radius: var(--border-radius-small);
+    overflow: hidden;
+    margin-bottom: 20px;
+    background: #f8f9fa;
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #ddd;
+}
+
+.camera-container.active {
+    border-color: var(--primary);
+}
+
+#video, #canvas {
+    width: 100%;
+    height: auto;
+    border-radius: var(--border-radius-small);
+    display: block;
+}
+
+#canvas {
+    display: none;
+}
+
+.camera-placeholder {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-light);
+}
+
+.camera-placeholder i {
+    font-size: 60px;
+    margin-bottom: 15px;
+    color: #ccc;
+}
+
+/* ===== FINGERPRINT SECTION ===== */
+.fp-container {
+    position: relative;
+    width: 100%;
+    border-radius: var(--border-radius-small);
+    overflow: hidden;
+    margin-bottom: 20px;
+    background: #f8f9fa;
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #ddd;
+}
+
+.fp-container.active {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, rgba(26, 115, 232, 0.05), rgba(13, 71, 161, 0.05));
+}
+
+.fp-icon-large {
+    font-size: 100px;
+    color: var(--primary);
+    margin-bottom: 15px;
+}
+
+.fp-placeholder {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-light);
+}
+
+.fp-status {
+    background: rgba(52, 168, 83, 0.1);
+    padding: 10px 15px;
+    border-radius: var(--border-radius-small);
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
+.fp-status i {
+    font-size: 1.2rem;
+}
+
+/* ===== BUTTONS ===== */
+.button-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.btn {
+    padding: 14px 20px;
+    border: none;
+    border-radius: var(--border-radius-small);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 7px 15px rgba(26, 115, 232, 0.3);
+}
+
+.btn-secondary {
+    background: #f0f4ff;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+}
+
+.btn-secondary:hover {
+    background: #e6ecff;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ===== PROGRESS INDICATOR ===== */
+.progress-container {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 30px;
+    box-shadow: 0 8px 25px var(--shadow-light);
+    margin-top: 30px;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.progress-steps {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #eee;
+    z-index: 1;
+}
+
+.progress-bar {
+    position: absolute;
+    top: 15px;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    z-index: 2;
+    transition: width 0.5s ease;
+}
+
+.step {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    width: 40px;
+    height: 40px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid #eee;
+    font-weight: 700;
+    color: var(--text-light);
+}
+
+.step.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.step.completed {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.step-label {
+    position: absolute;
+    top: 45px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.step.active .step-label {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .header {
+        padding: 20px;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .user-info .details {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+    
+    .progress-steps {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 30px;
+    }
+    
+    .progress-steps::before {
+        display: none;
+    }
+    
+    .progress-bar {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 15px;
+    }
+    
+    .header {
+        padding: 15px;
+    }
+    
+    .card {
+        padding: 20px;
+    }
+    
+    .section-title {
+        font-size: 1.3rem;
+    }
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<div class="header fade-in">
+    <div class="header-content">
+        <div>
+            <h1><i class="fas fa-user-check"></i> Attendance Identity Enrollment</h1>
+            <div class="tagline">Secure verification setup for attendance system</div>
+        </div>
+        <div class="user-info" id="userInfo"></div>
+    </div>
+</div>
+
+<!-- ===== MAIN CONTAINER ===== -->
+<div class="container">
+    <!-- Verification Steps -->
+    <div class="progress-container fade-in">
+        <div class="progress-header">
+            <h2 class="section-title"><i class="fas fa-tasks"></i> Verification Progress</h2>
+            <div class="progress-text" id="progressText">Step 1 of 2</div>
+        </div>
+        
+        <div class="progress-steps">
+            <div class="progress-bar" id="progressBar" style="width: 50%;"></div>
+            
+            <div class="step completed">
+                <span>1</span>
+                <div class="step-label">Profile Setup</div>
+            </div>
+            
+            <div class="step active">
+                <span>2</span>
+                <div class="step-label">Biometric Setup</div>
+            </div>
+            
+            <div class="step">
+                <span>3</span>
+                <div class="step-label">Complete</div>
+            </div>
+        </div>
+        
+        <p>Complete both verification steps below to finish your attendance identity setup.</p>
+    </div>
+    
+    <!-- ===== BIOMETRIC SETUP ===== -->
+    <h2 class="section-title fade-in"><i class="fas fa-fingerprint"></i> Biometric Setup</h2>
+    
+    <div class="grid">
+        <!-- FACE CAPTURE -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <div>
+                    <h3>Face Capture</h3>
+                    <small>Step 1 of 2</small>
+                </div>
+            </div>
+            
+            <p>
+                Position your face clearly in the frame with good lighting. 
+                Remove masks, glasses, or hats for accurate face recognition.
+            </p>
+            
+            <div class="camera-container" id="cameraContainer">
+                <div class="camera-placeholder" id="cameraPlaceholder">
+                    <i class="fas fa-camera"></i>
+                    <p>Camera is off. Click "Start Camera" to begin.</p>
+                </div>
+                <video id="video" autoplay></video>
+                <canvas id="canvas"></canvas>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="startCamera()" id="startCameraBtn">
+                    <i class="fas fa-play"></i> Start Camera
+                </button>
+                <button class="btn btn-secondary" onclick="capturePhoto()" id="captureBtn" disabled>
+                    <i class="fas fa-camera-retro"></i> Capture Photo
+                </button>
+            </div>
+            
+            <div class="fp-status" id="faceStatus" style="display: none;">
+                <i class="fas fa-check-circle"></i> 
+                <span>Face photo captured successfully!</span>
+            </div>
+        </div>
+
+        <!-- FINGERPRINT SCAN -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-fingerprint"></i>
+                </div>
+                <div>
+                    <h3>Fingerprint Scan</h3>
+                    <small>Step 2 of 2</small>
+                </div>
+            </div>
+            
+            <p>
+                Place your finger on the fingerprint scanner. 
+                This will be used for secure attendance verification.
+            </p>
+            
+            <div class="fp-container">
+                <div class="fp-placeholder" id="fpPlaceholder">
+                    <div class="fp-icon-large">
+                        <i class="fas fa-fingerprint"></i>
+                    </div>
+                    <p>Ready for fingerprint scanning</p>
+                    <small class="fp-status" style="margin-top: 10px;">
+                        <i class="fas fa-satellite-dish"></i> Connected to IoT fingerprint scanner
+                    </small>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="simulateFingerprintScan()">
+                    <i class="fas fa-fingerprint"></i> Scan Fingerprint
+                </button>
+                <button class="btn btn-secondary" onclick="resetFingerprint()">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+            </div>
+            
+            <div class="fp-status" id="fpStatus" style="display: none;">
+                <i class="fas fa-check-circle"></i> 
+                <span>Fingerprint scanned successfully!</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- COMPLETION BUTTON -->
+    <div class="card fade-in" style="margin-top: 30px; text-align: center;">
+        <h3><i class="fas fa-flag-checkered"></i> Complete Verification</h3>
+        <p>Once both biometric methods are set up, click below to complete the verification process.</p>
+        
+        <button class="btn btn-primary" style="max-width: 300px; margin: 20px auto;" onclick="completeVerification()" id="completeBtn" disabled>
+            <i class="fas fa-check-circle"></i> Complete Verification Setup
+        </button>
+        
+        <p class="fp-status" id="completionStatus" style="display: none;">
+            <i class="fas fa-spinner fa-spin"></i> 
+            <span>Submitting your verification data...</span>
+        </p>
+    </div>
+</div>
+
+<script>
+// ===== LOAD USER DATA =====
+const student = JSON.parse(localStorage.getItem("studentProfile"));
+
+if (!student) {
+    alert("Session expired. Please login again.");
+    window.location.href = "login.html";
+}
+
+// SHOW USER INFO
+document.getElementById("userInfo").innerHTML = `
+    <div class="name">${student.name}</div>
+    <div class="details">
+        <span><i class="fas fa-envelope"></i> ${student.email}</span>
+        <span><i class="fas fa-id-card"></i> ${student.roll}</span>
+        <span><i class="fas fa-graduation-cap"></i> ${student.stream}</span>
+        <span><i class="fas fa-calendar-alt"></i> Year ${student.academicYear}</span>
+        <span><i class="fas fa-clock"></i> ${student.session}</span>
+    </div>
+`;
+
+// DELETE AFTER USE
+localStorage.removeItem("studentProfile");
+
+// ===== APPLICATION STATE =====
+let stream = null;
+let faceCaptured = false;
+let fingerprintScanned = false;
+
+// ===== CAMERA LOGIC =====
+function startCamera() {
+    const video = document.getElementById("video");
+    const cameraContainer = document.getElementById("cameraContainer");
+    const cameraPlaceholder = document.getElementById("cameraPlaceholder");
+    const captureBtn = document.getElementById("captureBtn");
+    
+    // Update UI
+    cameraPlaceholder.style.display = 'none';
+    video.style.display = 'block';
+    cameraContainer.classList.add('active');
+    captureBtn.disabled = false;
+    
+    // Start camera
+    navigator.mediaDevices.getUserMedia({ 
+        video: { 
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: "user"
+        } 
+    })
+    .then(s => {
+        stream = s;
+        video.srcObject = s;
+    })
+    .catch(err => {
+        alert("Camera access denied or not available. Please check your camera permissions.");
+        console.error("Camera error:", err);
+        resetCameraUI();
+    });
+}
+
+function capturePhoto() {
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const faceStatus = document.getElementById("faceStatus");
+    const captureBtn = document.getElementById("captureBtn");
+    const startCameraBtn = document.getElementById("startCameraBtn");
+    
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // Draw video frame to canvas
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Show canvas and hide video
+    video.style.display = 'none';
+    canvas.style.display = 'block';
+    
+    // Update UI
+    faceStatus.style.display = 'flex';
+    captureBtn.disabled = true;
+    startCameraBtn.disabled = true;
+    startCameraBtn.innerHTML = '<i class="fas fa-check"></i> Camera Complete';
+    startCameraBtn.classList.remove('btn-primary');
+    startCameraBtn.classList.add('btn-secondary');
+    
+    // Update state
+    faceCaptured = true;
+    checkCompletion();
+    
+    // Stop camera stream
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+    
+    // Show success message
+    showNotification("Face photo captured successfully!");
+}
+
+function resetCameraUI() {
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const cameraContainer = document.getElementById("cameraContainer");
+    const cameraPlaceholder = document.getElementById("cameraPlaceholder");
+    const captureBtn = document.getElementById("captureBtn");
+    const startCameraBtn = document.getElementById("startCameraBtn");
+    const faceStatus = document.getElementById("faceStatus");
+    
+    // Reset UI
+    cameraPlaceholder.style.display = 'block';
+    video.style.display = 'none';
+    canvas.style.display = 'none';
+    cameraContainer.classList.remove('active');
+    captureBtn.disabled = true;
+    faceStatus.style.display = 'none';
+    
+    // Reset button
+    startCameraBtn.disabled = false;
+    startCameraBtn.innerHTML = '<i class="fas fa-play"></i> Start Camera';
+    startCameraBtn.classList.remove('btn-secondary');
+    startCameraBtn.classList.add('btn-primary');
+    
+    // Reset state
+    faceCaptured = false;
+    checkCompletion();
+}
+
+// ===== FINGERPRINT LOGIC =====
+function simulateFingerprintScan() {
+    const fpContainer = document.getElementById("fpPlaceholder");
+    const fpStatus = document.getElementById("fpStatus");
+    
+    // Show scanning animation
+    fpContainer.innerHTML = `
+        <div class="fp-icon-large pulse">
+            <i class="fas fa-fingerprint"></i>
+        </div>
+        <p>Scanning in progress...</p>
+        <div class="fp-status" style="margin-top: 10px;">
+            <i class="fas fa-circle-notch fa-spin"></i> Please keep your finger on the scanner
+        </div>
+    `;
+    
+    // Simulate scanning delay
+    setTimeout(() => {
+        // Show success state
+        fpContainer.innerHTML = `
+            <div class="fp-icon-large" style="color: var(--accent);">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <p>Fingerprint scanned successfully!</p>
+            <div class="fp-status" style="margin-top: 10px; background: rgba(52, 168, 83, 0.1);">
+                <i class="fas fa-check"></i> Fingerprint registered successfully
+            </div>
+        `;
+        
+        // Update UI
+        document.querySelector('.fp-container').classList.add('active');
+        fpStatus.style.display = 'flex';
+        
+        // Update state
+        fingerprintScanned = true;
+        checkCompletion();
+        
+        // Show success message
+        showNotification("Fingerprint scanned successfully!");
+        
+        // Update progress
+        updateProgress();
+    }, 2000);
+}
+
+function resetFingerprint() {
+    const fpContainer = document.getElementById("fpPlaceholder");
+    const fpStatus = document.getElementById("fpStatus");
+    
+    // Reset UI
+    fpContainer.innerHTML = `
+        <div class="fp-icon-large">
+            <i class="fas fa-fingerprint"></i>
+        </div>
+        <p>Ready for fingerprint scanning</p>
+        <small class="fp-status" style="margin-top: 10px;">
+            <i class="fas fa-satellite-dish"></i> Connected to IoT fingerprint scanner
+        </small>
+    `;
+    
+    document.querySelector('.fp-container').classList.remove('active');
+    fpStatus.style.display = 'none';
+    
+    // Reset state
+    fingerprintScanned = false;
+    checkCompletion();
+}
+
+// ===== COMPLETION LOGIC =====
+function checkCompletion() {
+    const completeBtn = document.getElementById("completeBtn");
+    
+    if (faceCaptured && fingerprintScanned) {
+        completeBtn.disabled = false;
+        completeBtn.innerHTML = '<i class="fas fa-check-circle"></i> Complete Verification Setup';
+    } else {
+        completeBtn.disabled = true;
+        completeBtn.innerHTML = '<i class="fas fa-lock"></i> Complete Both Steps First';
+    }
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById("progressBar");
+    const progressText = document.getElementById("progressText");
+    const step2 = document.querySelectorAll('.step')[1];
+    const step3 = document.querySelectorAll('.step')[2];
+    
+    if (faceCaptured && fingerprintScanned) {
+        progressBar.style.width = '100%';
+        progressText.textContent = 'Step 3 of 3';
+        step2.classList.remove('active');
+        step2.classList.add('completed');
+        step3.classList.add('active');
+    } else if (faceCaptured || fingerprintScanned) {
+        progressBar.style.width = '75%';
+        progressText.textContent = 'Step 2 of 3';
+    } else {
+        progressBar.style.width = '50%';
+        progressText.textContent = 'Step 1 of 3';
+    }
+}
+
+function completeVerification() {
+    const completionStatus = document.getElementById("completionStatus");
+    const completeBtn = document.getElementById("completeBtn");
+    
+    // Show loading state
+    completeBtn.disabled = true;
+    completionStatus.style.display = 'block';
+    completeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    
+    // Simulate API call
+    setTimeout(() => {
+        // Show success
+        completionStatus.innerHTML = '<i class="fas fa-check-circle"></i> Verification completed successfully!';
+        completionStatus.style.background = 'rgba(52, 168, 83, 0.1)';
+        
+        // Update button
+        completeBtn.innerHTML = '<i class="fas fa-check-circle"></i> Verification Complete';
+        completeBtn.style.background = 'linear-gradient(135deg, #34a853, #2e7d32)';
+        
+        // Show success notification
+        showNotification("Verification setup completed successfully!", true);
+        
+        // Update progress
+        const step3 = document.querySelectorAll('.step')[2];
+        step3.classList.remove('active');
+        step3.classList.add('completed');
+        
+        // Redirect after delay
+        setTimeout(() => {
+            alert("Verification setup complete! You will now be redirected to the dashboard.");
+            window.location.href = "dashboard.html"; // Change to your actual dashboard URL
+        }, 1500);
+    }, 2000);
+}
+
+// ===== HELPER FUNCTIONS =====
+function showNotification(message, isSuccess = true) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${isSuccess ? 'linear-gradient(135deg, #34a853, #2e7d32)' : 'linear-gradient(135deg, #ea4335, #c5221f)'};
+        color: white;
+        padding: 15px 20px;
+        border-radius: var(--border-radius-small);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: fadeIn 0.3s ease;
+        max-width: 350px;
+    `;
+    
+    notification.innerHTML = `
+        <i class="fas fa-${isSuccess ? 'check-circle' : 'exclamation-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'fadeIn 0.3s ease reverse';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
+}
+
+// Initialize
+window.addEventListener('load', () => {
+    // Add animation delays to cards
+    const cards = document.querySelectorAll('.fade-in');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+    });
+});
+</script>
+
+</body>
+</html>
